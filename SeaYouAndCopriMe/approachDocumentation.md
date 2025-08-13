@@ -1,64 +1,53 @@
-Goal
+# Sea, You & copriMe - Solution Approach
 
-From the array, pick four distinct indices so that we can form two disjoint pairs, and in each pair the two values are coprime (their gcd is 1). If it is not possible, print 0.
+## Problem Summary
+Given an array of n integers, find 4 distinct indices p, q, r, s such that:
+- gcd(a[p], a[q]) = 1 (coprime pair)
+- gcd(a[r], a[s]) = 1 (another coprime pair)
 
-Key constraints we use
+## Our Approach
 
-Values lie in [1, m] with m up to 1e6, and the total number of elements over all tests is up to 2e5.
+### 1. Special Cases with 1s
+Since gcd(1, x) = 1 for any x, having 1s in the array makes finding coprime pairs easier:
 
-We only need two pairs, so we never need more than two occurrences of the same value in an answer.
+- **4 or more 1s**: Simply pick any 4 indices with value 1
+- **3 ones**: Pick 3 ones and any other number
+- **2 ones**: Use the 2 ones as one coprime pair, find another coprime pair from remaining numbers
 
-Main strategy
+### 2. Small Arrays (n ≤ 2000) - Brute Force
+For smaller arrays, we use exhaustive search:
+- Try all possible combinations of 4 distinct indices
+- For each combination, check if we can split them into 2 coprime pairs
+- This ensures we don't miss any valid solution
 
-Reduce the search space safely
+### 3. Large Arrays (n > 2000) - Optimized Approach
+For larger arrays, brute force is too slow, so we use a smarter strategy:
 
-For each distinct value v, keep at most two indices with that value.
+#### Prime Factorization
+- Precompute smallest prime factors using sieve
+- For each number, find its distinct prime factors
+- Two numbers are coprime if they share no common prime factors
 
-This is safe because any valid answer uses at most two indices per value, and it drastically reduces how many items we try to pair.
+#### Heuristic Search
+- **Scoring**: Give each index a score = sum of counts of its prime factors
+- **Lower score = better candidate** (fewer conflicts with other numbers)
+- **Candidate Selection**: Pick up to 96 best candidates (lowest scores)
+- **Pair Finding**: For each candidate, mark all indices sharing prime factors, then find an unmarked partner
 
-Build quick access by value
+#### Search Strategy
+1. **With 2+ ones**: Use ones as first pair, search for second pair among remaining
+2. **With 1 one**: Find coprime pair among non-ones, pair the remaining one with any other index  
+3. **No ones**: Find two disjoint coprime pairs using the heuristic method
 
-Group the kept indices by their value and remember one representative index for each value.
+### 4. Key Optimizations
+- **Fast I/O**: Custom scanner for competitive programming speed
+- **Memory Efficient**: Custom IntList to avoid boxing overhead
+- **Lazy Allocation**: Only create prime index lists when needed
+- **Early Termination**: Stop as soon as valid solution is found
 
-If there are any 1s, they are perfect partners because 1 is coprime with any number.
+### 5. Why This Works
+- **Completeness**: Brute force for small cases ensures we never miss solutions
+- **Efficiency**: Heuristic approach handles large cases within time limits
+- **Special Case Handling**: Ones are handled optimally since they're coprime with everything
+- **Probabilistic Success**: For large random inputs, the heuristic approach has high success rate
 
-Try to give each kept index a coprime partner
-
-For a number x, we try to find another kept index y such that gcd(x, y) = 1.
-
-We follow a simple escalating order to keep it fast:
-a) If there are any kept 1s, try pairing with one of them immediately (unless x itself is 1 paired with itself).
-b) Otherwise, try up to one representative from many different values. As values are varied, the chance of being coprime is high.
-c) If still not found, do a short brute sweep over a small nearby subset of the kept list and check gcd directly.
-
-This gives us a candidate “partner” for as many indices as possible.
-
-Select two disjoint coprime pairs
-
-Now we have a set of candidate coprime connections.
-
-We greedily pick the first edge we can, mark both endpoints used, then look for another edge whose endpoints are not used.
-
-If we find two such edges, we output the four original indices. Otherwise we output 0.
-
-
-
-Trying 1s first, then one representative from many values, and then a small local scan balances speed and reliability. Most numbers are coprime with many others, so a partner is usually found quickly.
-
-Greedy selection of two disjoint edges is sufficient: if there exist two disjoint coprime pairs among the kept items, the greedy pass will find them.
-
-Performance intuition
-
-Amount of data after compression is at most min(n, 2 × number of distinct values). This keeps searches small.
-
-GCD checks are very fast.
-
-The sieve for smallest prime factors is built once up to the maximum m seen; it is a standard precomputation and allows quick prime-related checks if needed later.
-
-In short
-
-Shrink to at most two per value.
-
-Quickly connect each item to some coprime partner using simple heuristics.
-
-Pick two disjoint coprime pairs; print them if found, else 0.
