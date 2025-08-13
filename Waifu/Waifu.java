@@ -83,28 +83,24 @@ public class Main {
             for (int i = 0; i < n; i++) a[i] = fs.nextInt();
             Arrays.sort(a);
 
-            // For small k, use direct simulation
-            if (k <= 100000) {
-                PriorityQueue<Long> pq = new PriorityQueue<>();
-                for (int x : a) pq.add((long)x);
+            // Use optimized simulation that avoids storing too many elements
+            PriorityQueue<Long> pq = new PriorityQueue<>();
+            for (int x : a) pq.add((long)x);
+            
+            long ans = 1;
+            for (int op = 0; op < k; op++) {
+                long min = pq.poll();
+                ans = ans * min % MOD;
                 
-                long ans = 1;
-                for (int op = 0; op < k; op++) {
-                    long min = pq.poll();
-                    ans = ans * min % MOD;
-                    
-                    // Add 1, 2, ..., min-1 to the set
-                    for (long i = 1; i < min; i++) {
-                        pq.add(i);
-                    }
+                // Add 1, 2, ..., min-1 to the set, but be smart about it
+                // Only add elements that could potentially be processed
+                long toAdd = Math.min(min - 1, k - op - 1);
+                for (long i = 1; i <= toAdd; i++) {
+                    pq.add(i);
                 }
-                
-                out.append(ans).append('\n');
-            } else {
-                // For large k, we need a more sophisticated approach
-                // This case shouldn't occur in the given constraints
-                out.append("0\n");
             }
+            
+            out.append(ans).append('\n');
         }
         System.out.print(out.toString());
     }
